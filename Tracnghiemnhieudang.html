@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ứng dụng Ôn tập Trắc nghiệm AI</title>
+    <!-- MathJax hiển thị công thức Hóa / Toán -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --primary-light: #e0e7ff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --bg-glass: rgba(255, 255, 255, 0.88);
+            --border-glass: rgba(255, 255, 255, 0.6);
+            --bg-element: rgba(255, 255, 255, 0.65);
+            --bg-input: rgba(255, 255, 255, 0.9);
+            --bg-body-1: #f8fafc;
+            --bg-body-2: #e2e8f0;
+            --bg-body-3: #cbd5e1;
+            --border-input: #cbd5e1;
+            --success: #10b981;
+            --success-bg: #ecfdf5;
+            --error: #ef4444;
+            --error-bg: #fef2f2;
+        }
+
+        [data-theme="dark"] {
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --bg-glass: rgba(15, 23, 42, 0.88);
+            --border-glass: rgba(255, 255, 255, 0.1);
+            --bg-element: rgba(30, 41, 59, 0.65);
+            --bg-input: rgba(15, 23, 42, 0.9);
+            --bg-body-1: #0f172a;
+            --bg-body-2: #1e1b4b;
+            --bg-body-3: #311042;
+            --border-input: #334155;
+            --primary-light: rgba(99, 102, 241, 0.2);
+            --success-bg: rgba(16, 185, 129, 0.15);
+            --error-bg: rgba(239, 68, 68, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 25px;
+            background: linear-gradient(135deg, var(--bg-body-1) 0%, var(--bg-body-2) 40%, var(--bg-body-3) 100%);
+            transition: background 0.3s ease, color 0.3s ease;
+            position: relative;
+            overflow-x: hidden;
+            color: var(--text-main);
+        }
+
+        /* Khối hiệu ứng ánh sáng nền */
+        .bg-glow {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.45;
+            z-index: 0;
+            animation: float 10s infinite alternate ease-in-out;
+        }
+
+        .bg-glow-1 {
+            top: -100px;
+            left: -100px;
+            background: #6366f1;
+        }
+
+        .bg-glow-2 {
+            bottom: -100px;
+            right: -100px;
+            background: #ec4899;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            100% {
+                transform: translate(40px, 40px) scale(1.1);
+            }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 884px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-glass);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+        }
+
+        h1 {
+            font-family: 'Montserrat', sans-serif;
+            text-align: center;
+            font-size: clamp(1.8rem, 4.5vw, 2.4rem);
+            font-weight: 900;
+            letter-spacing: 1px;
+            line-height: 1.4;
+            padding-top: 15px;
+            padding-bottom: 25px;
+            color: #ffffff;
+            text-shadow:
+                1px 1px 0 #4f46e5,
+                2px 2px 0 #5b21b6,
+                3px 3px 0 #7c3aed,
+                4px 4px 0 #9333ea,
+                5px 5px 0 #c026d3,
+                6px 6px 0 #db2777,
+                7px 7px 0 #e11d48,
+                8px 8px 0 #be123c,
+                0 15px 25px rgba(0, 0, 0, 0.4);
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .icon-bounce {
+            display: inline-block;
+            font-size: clamp(2.2rem, 5vw, 2.8rem);
+            text-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
+            animation: bounceIcon 2.5s infinite ease-in-out;
+            -webkit-text-fill-color: initial;
+        }
+
+        @keyframes bounceIcon {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(-5deg);
+            }
+
+            50% {
+                transform: translateY(-12px) rotate(10deg);
+            }
+        }
+
+        .slogan-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: -5px;
+            margin-bottom: 30px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .slogan-text {
+            background: linear-gradient(90deg, #fbbf24, #f97316, #ef4444);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        [data-theme="light"] .slogan-text {
+            background: linear-gradient(90deg, #d97706, #ea580c, #dc2626);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Form cấu hình AI */
+        .ai-config-bar {
+            background: var(--bg-element);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 20px;
+        }
+
+        .ai-config-bar label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
+
+        .ai-config-bar input[type="password"],
+        .ai-config-bar textarea,
+        .ai-config-bar input[type="number"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-input);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            background: var(--bg-input);
+            color: var(--text-main);
+            outline: none;
+            transition: all 0.2s ease;
+            margin-bottom: 18px;
+        }
+
+        .ai-config-bar input:focus,
+        .ai-config-bar textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .question-counts-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 8px;
+        }
+
+        .question-counts-grid input {
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        /* Nút bấm chung */
+        .btn {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: #ffffff !important;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+        }
+
+        .btn-check {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #ffffff !important;
+            margin-top: 20px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-check:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+        }
+
+        .btn-nav {
+            width: auto;
+            padding: 12px 24px;
+            background: var(--bg-element);
+            color: var(--primary);
+            font-weight: 700;
+            border: 2px solid var(--primary);
+            box-shadow: none;
+        }
+
+        .btn-nav:hover:not(:disabled) {
+            background: #f8fafc;
+            border-color: #94a3b8;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Khung làm bài */
+        .quiz-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .question-box {
+            background: var(--bg-element);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .question-type-tag {
+            display: inline-block;
+            background: var(--primary-light);
+            color: var(--primary-hover);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            margin-bottom: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Tiêu đề câu hỏi căn giữa, màu mới và cỡ chữ tăng 20% */
+        .question-title {
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            font-weight: 700;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            text-align: center;
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Dạng chọn đáp án */
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            background: var(--bg-input);
+            color: #1e3a8a;
+            border: 2px solid var(--border-glass);
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        [data-theme="dark"] .option-item {
+            color: #93c5fd;
+        }
+
+        .option-item:hover {
+            border-color: var(--primary);
+            background: #f8fafc;
+        }
+
+        .option-item input {
+            margin-right: 14px;
+            accent-color: var(--primary);
+            width: 18px;
+            height: 18px;
+        }
+
+        .option-item.correct {
+            border-color: var(--success) !important;
+            background: var(--success-bg) !important;
+            color: #065f46;
+            font-weight: 700;
+        }
+
+        .option-item.incorrect {
+            border-color: var(--error) !important;
+            background: var(--error-bg) !important;
+            color: #991b1b;
+        }
+
+        /* Dạng Đúng / Sai */
+        .true-false-options {
+            display: flex;
+            gap: 20px;
+        }
+
+        .tf-btn {
+            flex: 1;
+            padding: 16px;
+            border: 2px solid var(--border-glass);
+            border-radius: 12px;
+            background: var(--bg-input);
+            color: var(--text-main);
+            font-weight: 700;
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tf-btn.btn-true {
+            color: var(--success);
+        }
+
+        .tf-btn.btn-false {
+            color: var(--error);
+        }
+
+        .tf-btn.btn-true:hover {
+            border-color: var(--success);
+            background: var(--success-bg);
+        }
+
+        .tf-btn.btn-false:hover {
+            border-color: var(--error);
+            background: var(--error-bg);
+        }
+
+        .tf-btn.correct {
+            background: var(--success) !important;
+            color: #ffffff !important;
+            border-color: var(--success) !important;
+        }
+
+        .tf-btn.incorrect {
+            background: var(--error) !important;
+            color: #ffffff !important;
+            border-color: var(--error) !important;
+        }
+
+        .tf-btn.selected {
+            background: var(--primary) !important;
+            color: #ffffff !important;
+            border-color: var(--primary) !important;
+        }
+
+        /* Dạng trả lời ngắn */
+        .short-answer-input {
+            width: 100%;
+            padding: 16px 22px;
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #f59e0b;
+            background: rgba(99, 102, 241, 0.08);
+            outline: none;
+            transition: all 0.2s ease;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        [data-theme="light"] .short-answer-input {
+            color: #92400e;
+            background: #fffbeb;
+        }
+
+        .short-answer-input::placeholder {
+            color: var(--text-muted);
+            font-weight: 400;
+            font-size: 0.9rem;
+            letter-spacing: 0;
+        }
+
+        .short-answer-input:focus {
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25);
+        }
+
+        /* Phản hồi đáp án & Giải thích */
+        .feedback-box {
+            margin-top: 20px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            font-size: 0.98rem;
+            line-height: 1.6;
+        }
+
+        .feedback-box.success {
+            background: var(--success-bg);
+            border: 1px solid #a7f3d0;
+            color: #065f46;
+        }
+
+        .feedback-box.error {
+            background: var(--error-bg);
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+
+        .explanation-text {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed rgba(0, 0, 0, 0.15);
+            font-weight: 400;
+            color: var(--text-main);
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        /* Modal thông báo tạo xong */
+        .ready-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(6px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ready-modal-overlay.active {
+            display: flex;
+        }
+
+        .ready-modal-box {
+            background: var(--bg-element);
+            border: 1px solid var(--border-glass);
+            border-radius: 24px;
+            padding: 40px 36px;
+            max-width: 380px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+            animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes popIn {
+            from {
+                transform: scale(0.7);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .ready-modal-icon {
+            font-size: 3.5rem;
+            display: block;
+            margin-bottom: 16px;
+            animation: bounceIcon 1.5s infinite ease-in-out;
+        }
+
+        .ready-modal-box h3 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 10px;
+        }
+
+        .ready-modal-box p {
+            font-size: 0.98rem;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .ready-modal-box .ready-count {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #6366f1, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: block;
+        }
+
+        /* Màn hình kết quả */
+        .result-screen {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .result-score {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #10b981, #059669);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 20px 0;
+        }
+
+
+        /* Nút Setup góc màn hình */
+        .setup-btn {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glass);
+            color: var(--text-main);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            transition: all 0.2s ease;
+        }
+
+        .setup-btn:hover {
+            transform: scale(1.05) rotate(15deg);
+        }
+
+        /* Modal Cài đặt */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glass);
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            font-size: 1.25rem;
+            color: var(--text-main);
+        }
+
+        .close-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--primary);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(24px);
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .setting-item input[type="password"],
+        .setting-item input[type="text"] {
+            width: 100%;
+            margin-top: 10px;
+            padding: 12px 16px;
+            border: 1px solid var(--border-input);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            background: var(--bg-input);
+            color: var(--text-main);
+            outline: none;
+        }
+
+        .provider-select {
+            width: 100%;
+            margin-top: 10px;
+            padding: 12px 16px;
+            border: 1px solid var(--border-input);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            background: var(--bg-input);
+            color: var(--text-main);
+            outline: none;
+            cursor: pointer;
+        }
+
+        .provider-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-left: 8px;
+        }
+
+        .badge-local {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-cloud {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .loading-text {
+            text-align: center;
+            font-style: italic;
+            color: var(--text-muted);
+            margin: 30px 0;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <button class="setup-btn" onclick="toggleSetupModal()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+            </path>
+        </svg>
+    </button>
+
+    <div class="modal-overlay" id="setup-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Cài đặt</h2>
+                <button class="close-btn" onclick="toggleSetupModal()">&times;</button>
+            </div>
+            <div class="setting-item">
+                <span>Chế độ Tối (Dark Mode)</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="theme-toggle" onchange="switchTheme(this)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="setting-item">
+                <span>Bật Nhạc nền (BGM)</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="bgm-toggle" onchange="toggleBGM(this)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="setting-item">
+                <span>Bật Hiệu ứng (SFX)</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="sfx-toggle" onchange="toggleSFX(this)" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="setting-item" style="flex-direction: column; align-items: flex-start; margin-bottom: 25px;">
+                <span>Âm lượng tổng</span>
+                <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5"
+                    onchange="changeVolume(this.value)" style="width: 100%; margin-top: 10px; cursor: pointer;">
+            </div>
+            <div class="setting-item" style="flex-direction: column; align-items: flex-start;">
+                <span>Nhà cung cấp AI</span>
+                <select class="provider-select" id="ai-provider" onchange="onProviderChange()">
+                    <option value="gemini">🔵 Google Gemini</option>
+                    <option value="openai">🟢 OpenAI (GPT)</option>
+                    <option value="claude">🟠 Anthropic Claude</option>
+                    <option value="ollama">🟣 Ollama (Local)</option>
+                </select>
+            </div>
+
+            <!-- Trường nhập API Key (hiện cho Cloud) -->
+            <div class="setting-item" style="flex-direction: column; align-items: flex-start;" id="api-key-section">
+                <span id="api-key-label">API Key</span>
+                <input type="password" id="api-key-input" placeholder="Nhập API Key...">
+            </div>
+
+            <!-- Chọn mô hình (hiện cho Cloud) -->
+            <div class="setting-item" style="flex-direction: column; align-items: flex-start;" id="model-name-section">
+                <span>Tên mô hình</span>
+                <input type="text" id="model-name-input" placeholder="ví dụ: gpt-4o, claude-3-5-sonnet-20241022...">
+            </div>
+
+            <!-- Điểm cuối Ollama (chỉ hiện khi chọn Ollama) -->
+            <div class="setting-item" style="flex-direction: column; align-items: flex-start; display:none;"
+                id="ollama-section">
+                <span>Ollama URL<span class="provider-badge badge-local">LOCAL</span></span>
+                <input type="text" id="ollama-url-input" placeholder="http://localhost:11434"
+                    value="http://localhost:11434">
+                <span style="margin-top:8px;">Tên model</span>
+                <select id="ollama-model-input"
+                    style="width: 100%; margin-top: 8px; padding: 12px 16px; border: 1px solid var(--border-input); border-radius: 10px; font-size: 0.95rem; background: var(--bg-input); color: var(--text-main); outline: none;">
+                    <option value="llama3.2">llama3.2 — Meta (phổ thông)</option>
+                    <option value="llama3.1">llama3.1 — Meta (8B)</option>
+                    <option value="llama3.1:70b">llama3.1:70b — Meta (mạnh)</option>
+                    <option value="qwen2.5">qwen2.5 — Alibaba</option>
+                    <option value="qwen2.5:14b">qwen2.5:14b — Alibaba (lớn)</option>
+                    <option value="qwen2.5-coder">qwen2.5-coder — Code chuyên dụng</option>
+                    <option value="gemma3">gemma3 — Google</option>
+                    <option value="gemma3:12b">gemma3:12b — Google (lớn)</option>
+                    <option value="mistral">mistral — Mistral AI</option>
+                    <option value="mistral-nemo">mistral-nemo — Mistral (context dài)</option>
+                    <option value="phi4">phi4 — Microsoft</option>
+                    <option value="phi4-mini">phi4-mini — Microsoft (nhẹ)</option>
+                    <option value="deepseek-r1">deepseek-r1 — DeepSeek (suy luận)</option>
+                    <option value="deepseek-r1:14b">deepseek-r1:14b — DeepSeek (lớn hơn)</option>
+                    <option value="deepseek-v3">deepseek-v3 — DeepSeek</option>
+                    <option value="solar-pro">solar-pro — Upstage</option>
+                    <option value="command-r">command-r — Cohere 35B</option>
+                    <option value="command-r-plus">command-r-plus — Cohere 104B</option>
+                    <option value="mixtral:8x22b">mixtral:8x22b — Mistral ~141B MoE</option>
+                    <option value="llama3.3:70b">llama3.3:70b — Meta 70B mới nhất</option>
+                    <option value="qwen2.5:72b">qwen2.5:72b — Alibaba 72B (tiếng Việt tốt)</option>
+                    <option value="deepseek-v3">deepseek-v3 — DeepSeek 671B MoE</option>
+                    <option value="falcon:180b">falcon:180b — TII 180B (cần RAM lớn)</option>
+                    <option value="vicuna">vicuna — Berkeley</option>
+                    <option value="gpt-oss:120b-cloud">gpt-oss:120b-cloud</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" onclick="toggleSetupModal()" style="margin-top: 10px;">Lưu</button>
+        </div>
+    </div>
+
+    <!-- Modal thông báo tạo xong -->
+    <div class="ready-modal-overlay" id="ready-modal">
+        <div class="ready-modal-box">
+            <span class="ready-modal-icon">🎉</span>
+            <h3>Câu hỏi đã sẵn sàng!</h3>
+            <p>AI đã tạo xong <span class="ready-count" id="ready-count-text">0</span> câu hỏi cho bạn.<br>Hãy tập trung
+                và làm thật tốt nhé!</p>
+            <button class="btn btn-primary" style="width:100%; font-size:1.1rem; letter-spacing:0.5px;"
+                onclick="startQuiz()">Bắt đầu làm bài ⚡</button>
+        </div>
+    </div>
+
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+
+    <div class="container">
+        <h1><span class="icon-bounce">🚀</span> SIÊU TRẮC NGHIỆM AI</h1>
+        <div class="slogan-container">
+            <span>⚡</span>
+            <span class="slogan-text">Tạo đề thần tốc — Ôn tập cực bốc</span>
+            <span>⚡</span>
+        </div>
+
+        <!-- Thanh cấu hình tạo câu hỏi bằng AI -->
+        <div id="ai-config-bar" class="ai-config-bar">
+            <label>Số lượng câu hỏi theo từng dạng:</label>
+            <div class="question-counts-grid">
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Trắc nghiệm A,B,C,D</label>
+                    <input type="number" id="num-choice" value="3" min="0" max="20">
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Đúng - Sai</label>
+                    <input type="number" id="num-tf" value="2" min="0" max="20">
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Trả lời ngắn</label>
+                    <input type="number" id="num-short" value="2" min="0" max="20">
+                </div>
+            </div>
+
+            <label>Nhập chủ đề hoặc nội dung tài liệu:</label>
+            <textarea id="ai-topic-input" rows="3"
+                placeholder="Ví dụ: Hóa học 12 bài Ester, hoặc dán nội dung bài học vào đây..."></textarea>
+
+            <button class="btn btn-primary" onclick="generateQuizWithAI()">Tạo câu hỏi bằng AI</button>
+        </div>
+
+        <div id="loading-box" class="loading-text hidden">✨ AI đang tổng hợp kiến thức và soạn câu hỏi... Vui lòng đợi
+            trong giây lát!</div>
+
+        <!-- Khung làm bài -->
+        <div id="quiz-screen" class="hidden">
+            <div class="quiz-info">
+                <span id="question-counter">Câu hỏi: 1/10</span>
+            </div>
+
+            <div class="question-box">
+                <span id="question-type-tag" class="question-type-tag">Dạng câu hỏi</span>
+                <div id="question-text" class="question-title">Nội dung câu hỏi...</div>
+                <div id="answer-container"></div>
+                <button id="check-answer-btn" class="btn btn-check" onclick="checkCurrentAnswer()">Kiểm tra đáp
+                    án</button>
+                <div id="feedback-box" class="feedback-box hidden"></div>
+            </div>
+
+            <div class="btn-container">
+                <button class="btn btn-nav" id="prev-btn" onclick="prevQuestion()" disabled>Câu trước</button>
+                <button class="btn btn-nav" id="next-btn" onclick="nextQuestion()">Câu tiếp theo</button>
+            </div>
+        </div>
+
+        <!-- Khung tổng kết điểm -->
+        <div id="result-screen" class="result-screen hidden">
+            <h2>🎉 Hoàn thành bài ôn tập!</h2>
+            <p style="color: var(--text-muted); margin-top: 8px;">Số câu trả lời đúng của bạn:</p>
+            <div class="result-score" id="final-score">0/0</div>
+            <button class="btn btn-primary" style="width: auto; padding: 14px 36px;" onclick="resetToConfig()">Tạo câu
+                hỏi mới</button>
+        </div>
+    </div>
+
+    <script>
+        let quizData = [];
+        let currentQuestionIndex = 0;
+        let userAnswers = [];
+        let isChecked = [];
+
+        const apiKeyInput = document.getElementById("api-key-input");
+        const modelNameInput = document.getElementById("model-name-input");
+        const ollamaUrlInput = document.getElementById("ollama-url-input");
+        const ollamaModelInput = document.getElementById("ollama-model-input");
+        const aiProviderSelect = document.getElementById("ai-provider");
+
+        // Nhãn API Key theo nhà cung cấp
+        const providerLabels = {
+            gemini: { label: "Google API Key", modelPlaceholder: "gemini-3.6-flash", defaultModel: "gemini-3.6-flash" },
+            openai: { label: "OpenAI API Key", modelPlaceholder: "gpt-4o, gpt-4o-mini...", defaultModel: "gpt-4o" },
+            "openai-compat": { label: "", modelPlaceholder: "", defaultModel: "" },
+            claude: { label: "Anthropic API Key", modelPlaceholder: "claude-3-5-sonnet-20241022...", defaultModel: "claude-3-5-sonnet-20241022" },
+            ollama: { label: "", modelPlaceholder: "", defaultModel: "" }
+        };
+
+        function onProviderChange() {
+            const provider = aiProviderSelect.value;
+            const info = providerLabels[provider];
+            const apiKeySection = document.getElementById("api-key-section");
+            const modelNameSection = document.getElementById("model-name-section");
+            const ollamaSection = document.getElementById("ollama-section");
+            const compatSection = document.getElementById("compat-section");
+
+            // Ẩn tất cả trước
+            if (ollamaSection) ollamaSection.style.display = "none";
+            if (compatSection) compatSection.style.display = "none";
+
+            if (provider === "ollama") {
+                apiKeySection.style.display = "none";
+                modelNameSection.style.display = "none";
+                ollamaSection.style.display = "flex";
+            } else if (provider === "openai-compat") {
+                apiKeySection.style.display = "none";
+                modelNameSection.style.display = "none";
+                if (compatSection) compatSection.style.display = "flex";
+            } else {
+                apiKeySection.style.display = "flex";
+                modelNameSection.style.display = "flex";
+                document.getElementById("api-key-label").innerText = info.label;
+                modelNameInput.placeholder = info.modelPlaceholder;
+                const savedModel = localStorage.getItem("ai_model_" + provider);
+                if (savedModel) {
+                    modelNameInput.value = savedModel;
+                } else {
+                    modelNameInput.value = info.defaultModel;
+                }
+                const savedKey = localStorage.getItem(provider + "_api_key");
+                apiKeyInput.value = savedKey ? savedKey : "";
+            }
+
+            localStorage.setItem("ai_provider", provider);
+        }
+        const numChoiceInput = document.getElementById("num-choice");
+        const numTfInput = document.getElementById("num-tf");
+        const numShortInput = document.getElementById("num-short");
+        const aiTopicInput = document.getElementById("ai-topic-input");
+        const aiConfigBar = document.getElementById("ai-config-bar");
+        const loadingBox = document.getElementById("loading-box");
+        const quizScreen = document.getElementById("quiz-screen");
+        const resultScreen = document.getElementById("result-screen");
+
+        const questionCounter = document.getElementById("question-counter");
+        const questionTypeTag = document.getElementById("question-type-tag");
+        const questionText = document.getElementById("question-text");
+        const answerContainer = document.getElementById("answer-container");
+        const checkBtn = document.getElementById("check-answer-btn");
+        const feedbackBox = document.getElementById("feedback-box");
+        const prevBtn = document.getElementById("prev-btn");
+        const nextBtn = document.getElementById("next-btn");
+        const finalScore = document.getElementById("final-score");
+
+
+        const setupModal = document.getElementById("setup-modal");
+        const themeToggle = document.getElementById("theme-toggle");
+
+        // --- HỆ THỐNG ÂM THANH ---
+        let isBgmEnabled = true;
+        let isSfxEnabled = true;
+        let globalVolume = 0.5;
+
+        // Sử dụng nhạc từ SoundHelix (đảm bảo không bị chặn hotlink)
+        const bgmTracks = [
+            "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+            "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+            "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+        ];
+        const bgm = new Audio(bgmTracks[0]);
+        bgm.loop = true;
+
+        // Âm thanh tuỳ chỉnh
+        const sfxClick = new Audio(""); // Đã xoá link google do 404
+        const sfxCorrect = new Audio("https://files.catbox.moe/6fltu0.mp3");
+        const sfxWrong = new Audio("https://files.catbox.moe/hhu1tu.mp3");
+        const sfxWin = new Audio("https://files.catbox.moe/psb8nk.mp3");
+
+        function playRandomBGM() {
+            if (!isBgmEnabled) return;
+            const randomTrack = bgmTracks[Math.floor(Math.random() * bgmTracks.length)];
+            bgm.src = randomTrack;
+            bgm.load();
+            bgm.play().catch(e => console.log("Trình duyệt chặn autoplay", e));
+        }
+
+        function updateVolume() {
+            bgm.volume = globalVolume * 0.4; // Nhạc nền nên nhỏ hơn SFX
+            sfxClick.volume = globalVolume;
+            sfxCorrect.volume = globalVolume;
+            sfxWrong.volume = globalVolume;
+            sfxWin.volume = globalVolume;
+        }
+
+        function toggleBGM(checkbox) {
+            isBgmEnabled = checkbox.checked;
+            localStorage.setItem("bgm_enabled", isBgmEnabled);
+            if (isBgmEnabled) {
+                bgm.play().catch(e => console.log("Trình duyệt chặn tự động phát nhạc", e));
+            } else {
+                bgm.pause();
+            }
+        }
+
+        function toggleSFX(checkbox) {
+            isSfxEnabled = checkbox.checked;
+            localStorage.setItem("sfx_enabled", isSfxEnabled);
+        }
+
+        function changeVolume(val) {
+            globalVolume = parseFloat(val);
+            localStorage.setItem("global_volume", globalVolume);
+            updateVolume();
+        }
+
+        function playSound(audioObj) {
+            if (isSfxEnabled) {
+                audioObj.currentTime = 0;
+                audioObj.play().catch(e => console.log(e));
+            }
+        }
+        // --- KẾT THÚC HỆ THỐNG ÂM THANH ---
+
+        function toggleSetupModal() {
+            setupModal.classList.toggle("active");
+        }
+
+        function switchTheme(checkbox) {
+            if (checkbox.checked) {
+                document.documentElement.setAttribute("data-theme", "dark");
+                localStorage.setItem("theme", "dark");
+            } else {
+                document.documentElement.setAttribute("data-theme", "light");
+                localStorage.setItem("theme", "light");
+            }
+        }
+
+        function formatShortAnswer(inputEl) {
+            inputEl.value = inputEl.value.replace(/[^a-zA-Z0-9.,\/]/g, '');
+            saveShortAnswer(inputEl.value);
+        }
+
+        // Khi trang web tải xong, tự động kiểm tra và điền API Key đã lưu
+        window.addEventListener("DOMContentLoaded", () => {
+            const savedTheme = localStorage.getItem("theme");
+            if (savedTheme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+                themeToggle.checked = true;
+            }
+
+            // Khôi phục nhà cung cấp và mô hình
+            const savedProvider = localStorage.getItem("ai_provider") || "gemini";
+            aiProviderSelect.value = savedProvider;
+
+            const savedOllamaUrl = localStorage.getItem("ollama_url");
+            if (savedOllamaUrl) ollamaUrlInput.value = savedOllamaUrl;
+            const savedOllamaModel = localStorage.getItem("ollama_model");
+            if (savedOllamaModel) ollamaModelInput.value = savedOllamaModel;
+
+            // Khôi phục compat settings (nếu có element)
+            const compatUrlInput = document.getElementById("compat-url-input");
+            const compatModelInput = document.getElementById("compat-model-input");
+            if (compatUrlInput) {
+                const savedCompatUrl = localStorage.getItem("compat_url");
+                if (savedCompatUrl) compatUrlInput.value = savedCompatUrl;
+            }
+            if (compatModelInput) {
+                const savedCompatModel = localStorage.getItem("compat_model");
+                if (savedCompatModel) compatModelInput.value = savedCompatModel;
+            }
+
+            onProviderChange(); // Cập nhật hiển thị đúng theo nhà cung cấp
+
+            // Khôi phục cài đặt âm thanh
+            const savedVolume = localStorage.getItem("global_volume");
+            if (savedVolume !== null) {
+                globalVolume = parseFloat(savedVolume);
+                document.getElementById("volume-slider").value = globalVolume;
+            }
+            updateVolume();
+
+            const savedSfx = localStorage.getItem("sfx_enabled");
+            if (savedSfx !== null) {
+                isSfxEnabled = savedSfx === "true";
+                document.getElementById("sfx-toggle").checked = isSfxEnabled;
+            }
+
+            const savedBgm = localStorage.getItem("bgm_enabled");
+            if (savedBgm === "true") {
+                isBgmEnabled = true;
+                document.getElementById("bgm-toggle").checked = true;
+                // Trình duyệt thường chặn Audio phát tự động khi chưa tương tác, nên ta gắn sự kiện click vào body
+                document.body.addEventListener('click', function startBgm() {
+                    if (isBgmEnabled) bgm.play().catch(e => { });
+                    document.body.removeEventListener('click', startBgm);
+                }, { once: true });
+            }
+        });
+
+        async function generateQuizWithAI() {
+            const provider = aiProviderSelect.value;
+            const apiKey = apiKeyInput.value.trim();
+            const modelName = modelNameInput.value.trim();
+            const ollamaUrl = ollamaUrlInput.value.trim() || "http://localhost:11434";
+            const ollamaModel = ollamaModelInput.value.trim();
+
+            const numChoice = parseInt(numChoiceInput.value) || 0;
+            const numTf = parseInt(numTfInput.value) || 0;
+            const numShort = parseInt(numShortInput.value) || 0;
+            const topic = aiTopicInput.value.trim();
+            const totalQuestions = numChoice + numTf + numShort;
+
+            const compatModelInput = document.getElementById("compat-model-input");
+
+            if (provider !== "ollama" && provider !== "openai-compat" && !apiKey) return alert("Vui lòng nhập API Key!");
+            if (provider === "ollama" && !ollamaModel) return alert("Vui lòng chọn model Ollama!");
+            if (provider === "openai-compat" && compatModelInput && !compatModelInput.value.trim()) return alert("Vui lòng nhập tên model!");
+            if (totalQuestions <= 0) return alert("Vui lòng chọn tổng số câu hỏi lớn hơn 0!");
+            if (!topic) return alert("Vui lòng nhập chủ đề!");
+
+            // Lưu settings
+            if (provider === "ollama") {
+                localStorage.setItem("ollama_url", ollamaUrl);
+                localStorage.setItem("ollama_model", ollamaModel);
+            } else if (provider === "openai-compat") {
+                const compatUrlInput = document.getElementById("compat-url-input");
+                const compatModelInput = document.getElementById("compat-model-input");
+                if (compatUrlInput) localStorage.setItem("compat_url", compatUrlInput.value.trim());
+                if (compatModelInput) localStorage.setItem("compat_model", compatModelInput.value.trim());
+            } else {
+                localStorage.setItem(provider + "_api_key", apiKey);
+                localStorage.setItem("ai_model_" + provider, modelName);
+            }
+
+            aiConfigBar.classList.add("hidden");
+            loadingBox.classList.remove("hidden");
+
+            const prompt = `Dựa vào chủ đề hoặc nội dung sau: "${topic}". Hãy tạo bộ gồm ĐÚNG số lượng từng dạng câu hỏi:
+        - Chọn đáp án đúng (type: "choice"): ${numChoice} câu.
+        - Đúng - Sai (type: "true-false"): ${numTf} câu.
+        - Trả lời ngắn (type: "short-answer"): ${numShort} câu.
+        
+        Đối với dạng trả lời ngắn, LƯU Ý QUAN TRỌNG:
+        Đáp án (correct) CHỈ ĐƯỢC CHỨA TỐI ĐA 4 KÝ TỰ, và CHỈ BAO GỒM CHỮ CÁI, CHỮ SỐ (0-9), DẤU PHẨY (,) HOẶC DẤU CHẤM (.). TUYỆT ĐỐI KHÔNG CHỨA ĐƠN VỊ TÍNH, không chứa khoảng trắng. Ví dụ hợp lệ: "12.5", "3,14", "1000", "A12".
+
+        LƯU Ý QUAN TRỌNG:
+        1. Bắt buộc có trường "explanation" (giải thích ngắn gọn lý do tại sao đáp án đó đúng).
+        2. Mọi công thức hóa học, ký hiệu hóa học, phương trình phản ứng HOẶC biểu thức toán học BẮT BUỘC phải bọc trong dấu kẹp $...$ chuẩn LaTeX (Ví dụ: $H_2SO_4$, $Fe^{3+}$, $CH_3COOH$, $\\rightarrow$).
+        
+        CHỈ TRẢ VỀ MỘT MẢNG JSON HỢP LỆ, không kèm theo văn bản nào khác ngoài JSON. Cấu trúc mẫu:
+        [
+          {
+            "type": "choice",
+            "typeName": "Chọn đáp án đúng",
+            "question": "Cho phản ứng $Fe + 2HCl \\rightarrow FeCl_2 + H_2$. Chất nào là chất khử?",
+            "options": ["$Fe$", "$HCl$", "$FeCl_2$", "$H_2$"],
+            "correct": 0,
+            "explanation": "$Fe$ là chất khử vì số oxi hóa của Fe tăng từ 0 lên +2 trong phản ứng."
+          },
+          {
+            "type": "true-false",
+            "typeName": "Đúng - Sai",
+            "question": "Công thức của anken có dạng $C_nH_{2n}$ ($n \\ge 2$).",
+            "correct": true,
+            "explanation": "Anken là hidrocacbon mạch hở chứa 1 liên kết đôi C=C, có công thức chung là $C_nH_{2n}$ ($n \\ge 2$)."
+          },
+          {
+            "type": "short-answer",
+            "typeName": "Trả lời ngắn",
+            "question": "Khối lượng mol của $NaOH$ là bao nhiêu g/mol?",
+            "correct": "40",
+            "explanation": "$M_{NaOH} = 23 (Na) + 16 (O) + 1 (H) = 40$ g/mol."
+          }
+        ]`;
+
+            try {
+                let textResponse = "";
+
+                if (provider === "gemini") {
+                    const model = modelName || "gemini-3.6-flash";
+                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                    });
+                    const data = await res.json();
+                    if (data.error) throw new Error(data.error.message);
+                    textResponse = data.candidates[0].content.parts[0].text;
+
+                } else if (provider === "openai") {
+                    const model = modelName || "gpt-4o";
+                    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
+                        body: JSON.stringify({ model, messages: [{ role: "user", content: prompt }], temperature: 0.7 })
+                    });
+                    const data = await res.json();
+                    if (data.error) throw new Error(data.error.message);
+                    textResponse = data.choices[0].message.content;
+
+                } else if (provider === "claude") {
+                    const model = modelName || "claude-3-5-sonnet-20241022";
+                    const res = await fetch("https://api.anthropic.com/v1/messages", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "x-api-key": apiKey,
+                            "anthropic-version": "2023-06-01",
+                            "anthropic-dangerous-direct-browser-access": "true"
+                        },
+                        body: JSON.stringify({ model, max_tokens: 4096, messages: [{ role: "user", content: prompt }] })
+                    });
+                    const data = await res.json();
+                    if (data.error) throw new Error(data.error.message);
+                    textResponse = data.content[0].text;
+
+                } else if (provider === "openai-compat") {
+                    const compatUrl = compatUrlInput.value.trim() || "http://localhost:1234/v1";
+                    const compatModel = compatModelInput.value.trim() || "local-model";
+                    const compatKey = compatApiKeyInput.value.trim();
+                    const headers = { "Content-Type": "application/json" };
+                    if (compatKey) headers["Authorization"] = `Bearer ${compatKey}`;
+                    const res = await fetch(`${compatUrl}/chat/completions`, {
+                        method: "POST",
+                        headers,
+                        body: JSON.stringify({ model: compatModel, messages: [{ role: "user", content: prompt }], temperature: 0.7 })
+                    });
+                    const data = await res.json();
+                    if (data.error) throw new Error(data.error.message);
+                    textResponse = data.choices[0].message.content;
+
+                } else if (provider === "ollama") {
+                    console.log("Đang gọi Ollama (chat) với payload:", { model: ollamaModel, prompt_length: prompt.length });
+                    const res = await fetch(`${ollamaUrl}/api/chat`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ model: ollamaModel, messages: [{ role: "user", content: prompt }], stream: false, options: { temperature: 0.7 } })
+                    });
+                    if (!res.ok) {
+                        const errText = await res.text();
+                        throw new Error(`Ollama request failed (${res.status}): ${errText}`);
+                    }
+                    const data = await res.json();
+                    if (data.error) throw new Error(data.error);
+                    // Ollama chat response uses `message.content`
+                    textResponse = data.message?.content || data.response || "";
+                }
+
+                let jsonString = textResponse.replace(/```json/g, "").replace(/```/g, "").trim();
+                const firstBracket = jsonString.indexOf('[');
+                const lastBracket = jsonString.lastIndexOf(']');
+                if (firstBracket !== -1 && lastBracket !== -1) {
+                    jsonString = jsonString.substring(firstBracket, lastBracket + 1);
+                }
+
+                quizData = JSON.parse(jsonString);
+                currentQuestionIndex = 0;
+                userAnswers = new Array(quizData.length).fill(null);
+                isChecked = new Array(quizData.length).fill(false);
+
+                loadingBox.classList.add("hidden");
+
+                // Hiện modal thông báo thay vì hiện ngay màn hình làm bài
+                document.getElementById("ready-count-text").innerText = quizData.length;
+                document.getElementById("ready-modal").classList.add("active");
+
+            } catch (error) {
+                console.error(error);
+                loadingBox.classList.add("hidden");
+                aiConfigBar.classList.remove("hidden");
+                alert("Lỗi khi tạo câu hỏi từ AI: " + error.message);
+            }
+        }
+
+        function startQuiz() {
+            document.getElementById("ready-modal").classList.remove("active");
+            quizScreen.classList.remove("hidden");
+            loadQuestion();
+            playRandomBGM();
+        }
+
+        function loadQuestion() {
+            const currentQ = quizData[currentQuestionIndex];
+            questionCounter.innerText = `Câu hỏi: ${currentQuestionIndex + 1}/${quizData.length}`;
+            questionTypeTag.innerText = currentQ.typeName;
+            questionText.innerHTML = currentQ.question;
+            answerContainer.innerHTML = "";
+
+            const hasChecked = isChecked[currentQuestionIndex];
+            const userAns = userAnswers[currentQuestionIndex];
+
+            if (currentQ.type === "choice") {
+                let html = '<div class="options-list">';
+                currentQ.options.forEach((opt, index) => {
+                    let statusClass = "";
+                    if (hasChecked) {
+                        if (index === currentQ.correct) statusClass = "correct";
+                        else if (userAns === index) statusClass = "incorrect";
+                    }
+
+                    const checked = userAns === index ? "checked" : "";
+                    const disabled = hasChecked ? "disabled" : "";
+
+                    html += `
+                    <label class="option-item ${statusClass}">
+                        <input type="radio" name="choice" value="${index}" ${checked} ${disabled} onclick="saveAnswer(${index})">
+                        <span>${opt}</span>
+                    </label>
+                `;
+                });
+                html += '</div>';
+                answerContainer.innerHTML = html;
+
+            } else if (currentQ.type === "true-false") {
+                let trueClass = "", falseClass = "";
+                if (hasChecked) {
+                    if (currentQ.correct === true) trueClass = "correct";
+                    else if (userAns === true) trueClass = "incorrect";
+
+                    if (currentQ.correct === false) falseClass = "correct";
+                    else if (userAns === false) falseClass = "incorrect";
+                } else {
+                    if (userAns === true) trueClass = "selected";
+                    if (userAns === false) falseClass = "selected";
+                }
+
+                const disabled = hasChecked ? "disabled" : "";
+
+                answerContainer.innerHTML = `
+                <div class="true-false-options">
+                    <button class="tf-btn btn-true ${trueClass}" ${disabled} onclick="saveTfAnswer(true)">Đúng</button>
+                    <button class="tf-btn btn-false ${falseClass}" ${disabled} onclick="saveTfAnswer(false)">Sai</button>
+                </div>
+            `;
+
+            } else if (currentQ.type === "short-answer") {
+                const disabled = hasChecked ? "disabled" : "";
+                const currentAnsStr = userAns !== null ? userAns : "";
+                answerContainer.innerHTML = `
+                <input type="text" class="short-answer-input" placeholder="Nhập đáp án không kèm đơn vị (tối đa 4 ký tự)" value="${currentAnsStr}" ${disabled} maxlength="4" oninput="formatShortAnswer(this)">
+            `;
+            }
+
+            checkBtn.disabled = hasChecked;
+            // Ẩn nút kiểm tra đối với câu hỏi trắc nghiệm vì sẽ chấm tự động
+            if (currentQ.type === "short-answer") {
+                checkBtn.style.display = "inline-flex";
+            } else {
+                checkBtn.style.display = "none";
+            }
+
+            if (hasChecked) {
+                showFeedback();
+            } else {
+                feedbackBox.classList.add("hidden");
+            }
+
+            prevBtn.disabled = currentQuestionIndex === 0;
+            nextBtn.innerText = currentQuestionIndex === quizData.length - 1 ? "Nộp bài" : "Câu tiếp theo";
+
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        function saveAnswer(index) {
+            userAnswers[currentQuestionIndex] = index;
+            checkCurrentAnswer(); // Tự động chấm
+        }
+        function saveTfAnswer(val) {
+            userAnswers[currentQuestionIndex] = val;
+            checkCurrentAnswer(); // Tự động chấm
+        }
+        function saveShortAnswer(val) { userAnswers[currentQuestionIndex] = val.trim(); }
+
+        function checkCurrentAnswer() {
+            const userAns = userAnswers[currentQuestionIndex];
+            if (userAns === null || userAns === "") {
+                alert("Vui lòng chọn hoặc nhập câu trả lời trước khi kiểm tra!");
+                return;
+            }
+
+            isChecked[currentQuestionIndex] = true;
+            loadQuestion();
+        }
+
+        function showFeedback() {
+            const currentQ = quizData[currentQuestionIndex];
+            const userAns = userAnswers[currentQuestionIndex];
+            let isCorrect = false;
+
+            if (currentQ.type === "choice" || currentQ.type === "true-false") {
+                isCorrect = (userAns === currentQ.correct);
+            } else if (currentQ.type === "short-answer") {
+                isCorrect = (String(userAns).toLowerCase() === String(currentQ.correct).toLowerCase());
+            }
+
+            feedbackBox.classList.remove("hidden", "success", "error");
+
+            const explanationHtml = currentQ.explanation ?
+                `<div class="explanation-text">💡 <strong>Giải thích:</strong> ${currentQ.explanation}</div>` : '';
+
+            if (isCorrect) {
+                playSound(sfxCorrect);
+                feedbackBox.classList.add("success");
+                feedbackBox.innerHTML = `<div><strong>Chính xác! 🎉</strong></div>${explanationHtml}`;
+            } else {
+                playSound(sfxWrong);
+                feedbackBox.classList.add("error");
+                let correctText = "";
+                if (currentQ.type === "choice") correctText = currentQ.options[currentQ.correct];
+                else if (currentQ.type === "true-false") correctText = currentQ.correct ? "Đúng" : "Sai";
+                else if (currentQ.type === "short-answer") correctText = currentQ.correct;
+
+                feedbackBox.innerHTML = `<div><strong>Chưa chính xác! ❌</strong><br>Đáp án đúng là: <strong>${correctText}</strong></div>${explanationHtml}`;
+            }
+
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < quizData.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                loadQuestion();
+            }
+        }
+
+        function showResult() {
+            bgm.pause();
+            playSound(sfxWin);
+            let score = 0;
+            quizData.forEach((q, index) => {
+                let userAns = userAnswers[index];
+                if (q.type === "choice" && userAns === q.correct) score++;
+                else if (q.type === "true-false" && userAns === q.correct) score++;
+                else if (q.type === "short-answer" && userAns) {
+                    if (String(userAns).toLowerCase() === String(q.correct).toLowerCase()) score++;
+                }
+            });
+
+            quizScreen.classList.add("hidden");
+            resultScreen.classList.remove("hidden");
+            finalScore.innerText = `${score}/${quizData.length}`;
+        }
+
+        function resetToConfig() {
+            resultScreen.classList.add("hidden");
+            aiConfigBar.classList.remove("hidden");
+            aiTopicInput.value = "";
+        }
+    </script>
+
+</body>
+
+</html>
